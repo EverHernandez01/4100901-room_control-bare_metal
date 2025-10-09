@@ -72,6 +72,13 @@ build CMakeFiles/Room_Control_Bere_Metal.dir/Src/systick.c.obj: C_COMPILER__Room
   OBJECT_DIR = CMakeFiles\Room_Control_Bere_Metal.dir
   OBJECT_FILE_DIR = CMakeFiles\Room_Control_Bere_Metal.dir\Src
 
+build CMakeFiles/Room_Control_Bere_Metal.dir/Src/uart.c.obj: C_COMPILER__Room_Control_Bere_Metal_unscanned_ H$:/0_UNIVERSIDAD_NACIONAL/5_Quinto_semestre/Estructuras_Computacionales/4100901-room_control-bare_metal/Room_Control_Bere_Metal/Src/uart.c || cmake_object_order_depends_target_Room_Control_Bere_Metal
+  DEP_FILE = CMakeFiles\Room_Control_Bere_Metal.dir\Src\uart.c.obj.d
+  FLAGS = -fdata-sections -ffunction-sections -Wl,--gc-sections -std=gnu11 -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -Wall -Wextra -Wpedantic -Wno-unused-parameter
+  INCLUDES = -IH:/0_UNIVERSIDAD_NACIONAL/5_Quinto_semestre/Estructuras_Computacionales/4100901-room_control-bare_metal/Room_Control_Bere_Metal/Inc
+  OBJECT_DIR = CMakeFiles\Room_Control_Bere_Metal.dir
+  OBJECT_FILE_DIR = CMakeFiles\Room_Control_Bere_Metal.dir\Src
+
 build CMakeFiles/Room_Control_Bere_Metal.dir/Src/syscall.c.obj: C_COMPILER__Room_Control_Bere_Metal_unscanned_ H$:/0_UNIVERSIDAD_NACIONAL/5_Quinto_semestre/Estructuras_Computacionales/4100901-room_control-bare_metal/Room_Control_Bere_Metal/Src/syscall.c || cmake_object_order_depends_target_Room_Control_Bere_Metal
   DEP_FILE = CMakeFiles\Room_Control_Bere_Metal.dir\Src\syscall.c.obj.d
   FLAGS = -fdata-sections -ffunction-sections -Wl,--gc-sections -std=gnu11 -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -Wall -Wextra -Wpedantic -Wno-unused-parameter
@@ -101,7 +108,7 @@ build CMakeFiles/Room_Control_Bere_Metal.dir/Startup/startup_stm32l476rgtx.s.obj
 #############################################
 # Link the executable Room_Control_Bere_Metal.elf
 
-build Room_Control_Bere_Metal.elf: C_EXECUTABLE_LINKER__Room_Control_Bere_Metal_ CMakeFiles/Room_Control_Bere_Metal.dir/Src/main.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/gpio.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/rcc.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/systick.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/syscall.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/sysmem.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Startup/startup_stm32l476rgtx.s.obj
+build Room_Control_Bere_Metal.elf: C_EXECUTABLE_LINKER__Room_Control_Bere_Metal_ CMakeFiles/Room_Control_Bere_Metal.dir/Src/main.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/gpio.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/rcc.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/systick.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/uart.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/syscall.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Src/sysmem.c.obj CMakeFiles/Room_Control_Bere_Metal.dir/Startup/startup_stm32l476rgtx.s.obj
   FLAGS = -fdata-sections -ffunction-sections -Wl,--gc-sections
   LINK_FLAGS = -TH:/0_UNIVERSIDAD_NACIONAL/5_Quinto_semestre/Estructuras_Computacionales/4100901-room_control-bare_metal/Room_Control_Bere_Metal/stm32l476rgtx_FLASH.ld -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -Wl,-Map=Room_Control_Bere_Metal.map -u _printf_float --specs=nosys.specs -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group -Wl,-z,max-page-size=8 -Wl,--print-memory-usage
   LINK_PATH = -LH:/0_UNIVERSIDAD_NACIONAL/5_Quinto_semestre/Estructuras_Computacionales/4100901-room_control-bare_metal/Room_Control_Bere_Metal/Room_Control_Bere_Metal
