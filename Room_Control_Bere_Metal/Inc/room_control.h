@@ -6,6 +6,16 @@
 // Constantes
 #define LED_TIMEOUT_MS 3000  // Tiempo para apagar LED después de presionar botón
 #define PWM_INITIAL_DUTY 50  // Duty cycle inicial para PWM LED
+#define DEBOUNCE_MS 200 // Tiempo mínimo entre pulsaciones válidas
+#define HEARTBEAT_MS 500 // Tiempo mínimo entre parpadeos del LED heartbeat
+
+// Estados de la sala
+typedef enum {
+    ROOM_IDLE,
+    ROOM_OCCUPIED,
+} room_state_t;
+
+extern room_state_t current_state;
 
 /**
  * @brief Función a ser llamada por EXTI15_10_IRQHandler cuando se detecta

@@ -1,20 +1,21 @@
 // gpio.h
+#ifndef GPIO_H
 #define GPIO_H
 #include <stdint.h>
 
 typedef struct {
-    volatile uint32_t MODER;
-    volatile uint32_t TYPER;
-    volatile uint32_t SPEEDR;
-    volatile uint32_t PUPDR;
-    volatile uint32_t IDR;
-    volatile uint32_t ODR;
-    volatile uint32_t BSRR;
-    volatile uint32_t LCKR;
-    volatile uint32_t AFRL;
-    volatile uint32_t AFRH;
-    volatile uint32_t BRR;
-    volatile uint32_t ASCR;
+    volatile uint32_t MODER; // Modo: input, output, alt func, analog
+    volatile uint32_t TYPER; // Tipo: push-pull, open-drain
+    volatile uint32_t SPEEDR; // Velocidad: low, medium, high
+    volatile uint32_t PUPDR; // Pull-up/pull-down
+    volatile uint32_t IDR; // Input data register
+    volatile uint32_t ODR; // Output data register
+    volatile uint32_t BSRR; // Bit Set/Reset Register
+    volatile uint32_t LCKR; // Lock Register
+    volatile uint32_t AFRL; // Alternate Function Low Register
+    volatile uint32_t AFRH; // Alternate Function High Register
+    volatile uint32_t BRR;  // Bit Reset Register
+    volatile uint32_t ASCR; // Analog Switch Control Register
 
 } GPIO_Typedef_t;
 
@@ -44,12 +45,13 @@ typedef struct {
 #define GPIOH       ((GPIO_Typedef_t *) GPIOH_BASE)
 
 
-#define LD2_PIN     5U         // Pin PA5 (LED)
-#define B1_PIN      13U       // Pin PC13 (Button)
-
+#define LD2_PIN     5U                                         // Pin PA5 (LED)
+#define B1_PIN      13U   
+// puerto, pin , modulo, tipo, velocidad, pupd, valor inicial
 void init_gpio(GPIO_Typedef_t * GPIO, uint8_t pin, uint8_t mode, uint8_t type, uint8_t speed, uint8_t pupd, uint8_t initial_value);
 
 void set_gpio(GPIO_Typedef_t * GPIO, uint8_t pin);
 void clear_gpio(GPIO_Typedef_t * GPIO, uint8_t pin);
 uint8_t read_gpio(GPIO_Typedef_t * GPIO, uint8_t pin);
+void gpio_setup_pin(GPIO_Typedef_t *GPIOx, uint8_t pin, uint8_t mode, uint8_t af);
 #endif

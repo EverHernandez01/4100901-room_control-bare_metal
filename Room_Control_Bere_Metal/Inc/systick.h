@@ -1,14 +1,28 @@
-// systick.h
+#ifndef SYSTICK_H
+#define SYSTICK_H
 #include <stdint.h>
 
+// SysTick
 typedef struct {
-    volatile uint32_t CSR;   // Control and Status Register
-    volatile uint32_t RVR;   // Reload Value Register
-    volatile uint32_t CVR;   // Current Value Register
-    volatile uint32_t CALIB; // Calibration Value Register
-} SYSTICK_Typedef_t;
+    volatile uint32_t CTRL;
+    volatile uint32_t LOAD;
+    volatile uint32_t VAL;
+    volatile uint32_t CALIB;
+} SysTick_TypeDef;
 
-#define SYSTICK_BASE 0xE000E010U
-#define SYSTICK      ((SYSTICK_Typedef_t *) SYSTICK_BASE)
+#define SysTick ((SysTick_TypeDef *)0xE000E010U)
 
+/**
+ * @brief Inicializa el SysTick para generar interrupciones cada 1 ms.
+ *        Debe llamarse una sola vez al iniciar el programa.
+ */
 void init_systick(void);
+
+/**
+ * @brief Devuelve el número de milisegundos desde que se inicializó el sistema.
+ */
+uint32_t systick_get_ms(void);
+
+void Systick_Handler(void);
+
+#endif

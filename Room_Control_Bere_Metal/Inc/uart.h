@@ -17,11 +17,14 @@ typedef struct {
     volatile uint32_t RDR;
     volatile uint32_t TDR;
 } USART_Typedef_t;
-#define USART2 ((USART_Typedef_t *)0x40004400U)
+#define USART1 ((USART_Typedef_t *)0x40013800U)
+#define USART2 ((USART_Typedef_t *)0x40004400U)// Dirección base de USART2
+#define USART3 ((USART_Typedef_t *)0x40004800U)
+
 
 // Constantes
 #define BAUD_RATE     115200U
-#define HSI_FREQ      4000000U
+#define HSI_FREQ      4000000U // constante del reloj interno 4 MHz
 
 // Prototipos de funciones
 void init_gpio_uart(void);

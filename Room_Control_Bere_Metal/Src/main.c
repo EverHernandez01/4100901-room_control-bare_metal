@@ -1,53 +1,80 @@
 #include "gpio.h"
 #include "systick.h"
 #include "rcc.h"
-#include "uart.h"  // Agregar esta línea
+#include "uart.h"
+#include "nvic.h"
+#include "tim.h"
+#include "room_control.h"
 
-static volatile uint32_t ms_counter = 17;
-static char rx_buffer[256];
-static uint8_t rx_index = 0;
+// Flags para eventos
+volatile uint8_t button_event = 0;
+volatile char uart_event_char = 0;
 
-// --- Programa principal ------------------------------------------------------
+// Contador de milisegundos del sistema
+volatile uint32_t system_ms_counter = 0;
+
+// Función local para inicializar periféricos
+static void peripherals_init(void)
+{
+    // Inicialización del sistema
+    rcc_init();
+
+    // Configuración de GPIOs
+    init_gpio(GPIOA,5,0x01,0x00,0x00,0x00,0); // LED externo
+    init_gpio(GPIOB,3,0x01,0x00,0x00,0x00,0); // LD2 (Hearbeat)
+    init_gpio(GPIOC, 13, 0x00,0x00,0x00, 0x00,0); // Button
+
+
+    // Inicialización de periféricos
+    init_systick();
+    init_uart();  // Asumiendo función unificada
+    nvic_exti_pc13_button_enable();
+    nvic_usart2_irq_enable();
+    tim3_ch1_pwm_init(1000);  // 1 kHz PWM
+}
+
 int main(void)
 {
-    rcc_init();
-    init_gpio(GPIOA, 5, 0x01, 0x00, 0x01, 0x00, 0x00);
-    init_gpio(GPIOC, 13, 0x00, 0x00, 0x01, 0x01, 0x00);
-    init_systick();
-    init_gpio_uart();  // Agregar inicialización GPIO para UART
-    init_uart();       // Agregar inicialización UART
-    
-    uart_send_string(" Sistema Inicializado!\r\n");  // Enviar mensaje de inicio
-    
-    while (1) {
-        if (read_gpio(GPIOC, 13) != 0) { // Botón presionado
-            ms_counter = 0;   // reiniciar el contador de milisegundos
-            set_gpio(GPIOA, 5);        // Encender LED
-        }
-        
-        if (ms_counter >= 3000) { // Si han pasado 3 segundos o más, apagar LED
-            clear_gpio(GPIOA, 5);             // Apagar LED
-        }
+    peripherals_init();
+    room_control_app_init();
+    uart_send_string("Sistema de Control de Sala Inicializado!\r\n");
 
-        // Polling UART receive
-        if (USART2->ISR & (1 << 5)) {  // RXNE
-            char c = (char)(USART2->RDR & 0xFF);
-            if (rx_index < sizeof(rx_buffer) - 1) {
-                rx_buffer[rx_index++] = c;
-                if (c == '\r' || c == '\n') {
-                    rx_buffer[rx_index] = '\0';  // Null terminate
-                    uart_send_string("Recibido: ");
-                    uart_send_string(rx_buffer);
-                    uart_send_string("Sistema iniciado \r\n");
-                    rx_index = 0;
-                }
-            }
+    // Bucle principal: procesa eventos
+    while (1) {
+        if (button_event) {
+            button_event = 0;
+            room_control_on_button_press();
         }
+        if (uart_event_char) {
+            char c = uart_event_char;
+            uart_event_char = 0;
+            room_control_on_uart_receive(c);
+        }
+        // Llamar a la función de actualización periódica
+        room_control_update();
     }
 }
 
-// --- Manejador de la interrupción SysTick -----------------------------------
+// Manejador de SysTick
 void SysTick_Handler(void)
 {
-    ms_counter++;
+    system_ms_counter++;
+}
+
+// Manejadores de interrupciones
+void EXTI15_10_IRQHandler(void)
+{
+    // Limpiar flag de interrupción
+    if (EXTI->PR1 & (1 << 13)) {
+        EXTI->PR1 |= (1 << 13);  // Clear pending
+        button_event = 1;
+    }
+}
+
+void USART2_IRQHandler(void)
+{
+    // Verificar si es recepción
+    if (USART2->ISR & (1 << 5)) {  // RXNE
+        uart_event_char = (char)(USART2->RDR & 0xFF);
+    }
 }

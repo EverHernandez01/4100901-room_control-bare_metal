@@ -23,8 +23,7 @@ set(linker_script_SRC ${linker_script_SRC}
 # Sources
 set(sources_SRCS ${sources_SRCS}
 
-	#${CMAKE_CURRENT_SOURCE_DIR}/Src/main_t.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Src/rom_control.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Src/room_control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Src/tim.c
 	${CMAKE_CURRENT_SOURCE_DIR}/Src/nvic.c
 	${CMAKE_CURRENT_SOURCE_DIR}/Src/main.c

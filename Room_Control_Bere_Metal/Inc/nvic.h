@@ -16,12 +16,12 @@ typedef struct {
 
 // EXTI
 typedef struct {
-    volatile uint32_t IMR1;
-    volatile uint32_t EMR1;
-    volatile uint32_t RTSR1;
-    volatile uint32_t FTSR1;
-    volatile uint32_t SWIER1;
-    volatile uint32_t PR1;
+    volatile uint32_t IMR1; 
+    volatile uint32_t EMR1; //enmascara/habilita las líneas de interrupción.
+    volatile uint32_t RTSR1; //configura el trigger de flanco de subida.
+    volatile uint32_t FTSR1; //configura el trigger de flanco de bajada.
+    volatile uint32_t SWIER1; //software interrupt event register.
+    volatile uint32_t PR1;  //pending register, indica qué líneas han generado una interrupción pendiente.
     uint32_t RESERVED1[2];
     volatile uint32_t IMR2;
     volatile uint32_t EMR2;
@@ -47,16 +47,18 @@ typedef struct {
     uint32_t RESERVED5[644U];
     volatile uint32_t STIR;             /*!< Offset: 0xE00 ( /W)  Software Trigger Interrupt Register */
 } NVIC_Type;
-
+// Direcciones base periféricas
 #define SYSCFG_BASE         (0x40010000UL)
 #define EXTI_BASE           (0x40010400UL)
 #define NVIC_BASE           (0xE000E100UL)
 
+
+// Direcciones de memoria
 #define SYSCFG              ((SYSCFG_TypeDef *) SYSCFG_BASE)
 #define EXTI                ((EXTI_TypeDef *)   EXTI_BASE)
 #define NVIC                ((NVIC_Type *)      NVIC_BASE)
 
-// IRQn enumerations (extracto para STM32L476RG)
+// IRQn Enumeración de interrupciones (extracto para STM32L476RG)
 typedef enum {
     EXTI15_10_IRQn              = 40,     /*!< External Line[15:10] Interrupts                  */
     USART2_IRQn                 = 38,     /*!< USART2 global Interrupt                          */
@@ -70,5 +72,5 @@ typedef enum {
 // Prototipos de funciones
 void nvic_exti_pc13_button_enable(void); // Configura EXTI13 y habilita su IRQ en NVIC
 void nvic_usart2_irq_enable(void);       // Habilita USART2 IRQ en NVIC
-
+void nvic_set_priority(uint32_t IRQn, uint8_t priority); // Configura prioridad de interrupción
 #endif // NVIC_H
