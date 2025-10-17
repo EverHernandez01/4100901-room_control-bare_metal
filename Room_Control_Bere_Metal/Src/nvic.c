@@ -1,49 +1,46 @@
 #include "nvic.h"
+#include "gpio.h"
+#include "room_control.h"
 #include "uart.h"
-#include "rcc.h" 
 
-static void nvic_enable_irq(uint32_t IRQn)
+extern volatile uint8_t button_event;
+extern volatile uint32_t system_ms_counter;
+
+// ------------------------------
+// Habilita EXTI13 (PC13) en NVIC
+// ------------------------------
+void nvic_exti_pc13_button_enable(void)
 {
-    NVIC->ISER[IRQn / 32U] |= (1UL << (IRQn % 32U));
-}
+    // Habilita reloj SYSCFG
+    RCC->APB2ENR |= (1U << 0);
 
-// --- Configurar prioridad de interrupción ---------------------------
-void nvic_set_priority(uint32_t IRQn, uint8_t priority)
-{
-    // Cada campo NVIC -> IP tiene 8 bits por IRQ
-    NVIC -> IP[IRQn] = (priority << 4) & 0xF0; 
-}
+    // PC13 -> EXTI13: EXTICR4 bits para la línea 13 (C = 0b10)
+    SYSCFG->EXTICR[3] &= ~(0xFU << 4);
+    SYSCFG->EXTICR[3] |=  (0x2U << 4);
 
-void nvic_exti_pc13_button_enable(void) {
-    // 1. Habilitar el reloj para SYSCFG
-    rcc_syscfg_clock_enable();
-
-    // 2. Configurar la línea EXTI13 (SYSCFG_EXTICR) pin (PC13)
-    SYSCFG->EXTICR[3] &= ~(0x000FU << 4);  // Limpiar campo EXTI13
-    SYSCFG->EXTICR[3] |=  (0x0002U << 4);  // Conectar EXTI13 a PC13
-
-    // 3. Configurar la línea EXTI13 para interrupción
+    // Desenmascara la línea 13
     EXTI->IMR1 |= (1U << 13);
-
-    // 4. Configurar el trigger de flanco de bajada
+    // Flanco descendente (botón activo-bajo)
     EXTI->FTSR1 |= (1U << 13);
-    EXTI->RTSR1 &= ~(1U << 13);
+    // Limpia pendiente inicial
+    EXTI->PR1 = (1U << 13);
 
-    // 5. Habilitar la interrupción EXTI15_10 en el NVIC
-    nvic_enable_irq(EXTI15_10_IRQn);
-
-    // 6. Establecer prioridad ALTA (valor bajo)
-    nvic_set_priority(EXTI15_10_IRQn, 1);
+    // Habilita IRQ en NVIC (EXTI15_10_IRQn)
+    NVIC->ISER[1] = (1U << (EXTI15_10_IRQn - 32));
 }
 
-void nvic_usart2_irq_enable(void) {
+// ---------------------------------------
+// Habilita interrupción de RX en USART2
+// ---------------------------------------
+void nvic_usart2_irq_enable(void)
+{
+    // Habilita RXNEIE (interrupción cuando hay dato)
+    USART2->CR1 |= (1U << 5);
 
-    // Habilitar interrupción de recepción en USART2
-    USART2->CR1 |= (1U << 5);  // RXNEIE
-
-    // Establecer prioridad BAJA (valor más alto)
-    nvic_set_priority(USART2_IRQn, 3);
-
-    // Habilitar IRQ
-    nvic_enable_irq(USART2_IRQn);
+    // Habilita IRQ de USART2 en NVIC
+    NVIC->ISER[1] = (1U << (USART2_IRQn - 32));
 }
+
+// ---------------------------------------
+// ISR: Botón B1 (PC13) con debounce
+// 

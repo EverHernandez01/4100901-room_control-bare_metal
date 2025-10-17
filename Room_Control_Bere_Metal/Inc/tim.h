@@ -35,7 +35,7 @@ typedef struct {
 
 // Constantes
 #define TIM_PCLK_FREQ_HZ    4000000U   // Frecuencia del reloj del timer 4 MHz APB1 timer clock
-#define PWM_FREQUENCY       1000U      // salida 1 kHz PWM
+#define PWM_FREQUENCY       10000U      // salida 1 kHz PWM
 #define PWM_PERIOD          (TIM_PCLK_FREQ_HZ / PWM_FREQUENCY)
 #define PWM_DUTY_CYCLE      50         // 50% duty cycle
 #define PWM_PIN             6U         // PA6 = TIM3_CH1
@@ -45,5 +45,6 @@ typedef struct {
 // Prototipos de funciones
 void tim3_ch1_pwm_init(uint32_t pwm_freq_hz); 
 void tim3_ch1_pwm_set_duty_cycle(uint8_t duty_cycle_percent); // duty_cycle en % (0-100)
+void tim3_ch1_pwm_set_frequency(uint32_t pwm_freq_hz);
 
 #endif // TIM_H

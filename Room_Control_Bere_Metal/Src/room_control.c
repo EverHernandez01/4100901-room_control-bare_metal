@@ -3,137 +3,157 @@
 #include "systick.h"
 #include "uart.h"
 #include "tim.h"
+extern volatile uint32_t ms_counter;
 
 
+typedef enum
+{
+    ROOM_IDLE,
+    ROOM_OCCUPIED
+} room_state_t;
 
-// ======================== VARIABLES GLOBALES ==========================
-// Variable de estado global
-room_state_t current_state = ROOM_IDLE;
-static uint32_t led_on_time = 0;
-static uint32_t last_button_time = 0;
-static uint32_t last_heartbeat_time = 0;
-static uint8_t current_duty = PWM_INITIAL_DUTY;
+// Variables globales - estado 
+static room_state_t current_state = ROOM_IDLE;
+static uint32_t last_action_time = 0;
 
-
-extern volatile uint32_t system_ms_counter;  // Variable global del SysTick (definida en main.c)
-
-// ======================== FUNCIONES ===============================
-
-// Inicialización de la aplicación Apaga el LED (PWM=0) y muestra mensaje
+// --- Inicialización - lógica ---------------------------------------------
 void room_control_app_init(void)
 {
-    // Inicializar PWM en TIM3_CH1 (LED controlado por PWM)
-    tim3_ch1_pwm_init(1000); // 1 kHz
-    tim3_ch1_pwm_set_duty_cycle(current_duty);
-
-    // Estado inicial: Idle, LED apagado
     current_state = ROOM_IDLE;
-    clear_gpio(GPIOA,5); // LED principal apagado
-    uart_send_string("Sistema Room Control Iniciado.\r\n");
+    last_action_time = 0;
+
+    // Inicializar PWM (PA6)
+    tim3_ch1_pwm_init(PWM_FREQUENCY );
+    tim3_ch1_pwm_set_duty_cycle(PWM_INITIAL_DUTY);
+
+    // Asegurar LEDs apagados
+    clear_gpio(GPIOA, 5);
+    tim3_ch1_pwm_set_duty_cycle(0);
+
+    uart_send_string("Room Control inicializado\r\n");
 }
 
-// ----------------------------------------------------
-// Lógica al presionar botón físico (PC13)
-// ----------------------------------------------------
+// --- Lógica al presionar botón ------------------------------------------------
 void room_control_on_button_press(void)
 {
-    uint32_t now = systick_get_ms();
-    if ((now - last_button_time) < DEBOUNCE_MS){
-        return; // Ignorar rebotes
-    }
-    last_button_time = now;
-
-    // Alternar entre estados
-    if (current_state == ROOM_IDLE){
+    if (current_state == ROOM_IDLE)
+    {
         current_state = ROOM_OCCUPIED;
-        set_gpio(GPIOA,5); // Encender LED principal
-        tim3_ch1_pwm_set_duty_cycle(100);
-        uart_send_string("Sala Ocupada.\r\n");
-        led_on_time = now;
-    }else{
-        current_state = ROOM_IDLE;
-        clear_gpio(GPIOA,5); // Apagar LED principal
-        tim3_ch1_pwm_set_duty_cycle(0);
-        uart_send_string("Sala Vacía.\r\n");
+        set_gpio(GPIOA, 5);               // LED integrado ON
+        tim3_ch1_pwm_set_duty_cycle(100); // LED PWM al 100%
+        uart_send_string("Hello world!\r\n");
+
     }
+    else
+    {
+        current_state = ROOM_IDLE;
+        clear_gpio(GPIOA, 5);           // LED integrado OFF
+        tim3_ch1_pwm_set_duty_cycle(0); // LED PWM OFF
+        uart_send_string("Estado: IDLE\r\n");
+    }
+
+    // Registrar tiempo de acción
+    last_action_time = ms_counter;
 }
 
-// ----------------------------------------------------
-// Lógica al recibir carácter por UART
-// ----------------------------------------------------
+// --- Lógica de comandos UART --------------------------------------------------
 void room_control_on_uart_receive(char received_char)
 {
-     switch (received_char) {
-        case 'h':
-        case 'H':
-            tim3_ch1_pwm_set_duty_cycle(100);
-            uart_send_string("PWM 100%\r\n");
-            break;
-        case 'l':
-        case 'L':
-            tim3_ch1_pwm_set_duty_cycle(0);
-            uart_send_string("PWM 0%\r\n");
-            break;
-        case 'O':
-        case 'o':
-            current_state = ROOM_OCCUPIED;
-            set_gpio(GPIOA,5);
-            tim3_ch1_pwm_set_duty_cycle(100);
-            uart_send_string("Comando: Sala Ocupada\r\n");
-            led_on_time = systick_get_ms();
-            break;
-        case 'I':
-        case 'i':
-            current_state = ROOM_IDLE;
-            clear_gpio(GPIOA,5);
-            tim3_ch1_pwm_set_duty_cycle(0);
-            uart_send_string("Comando: Sala Vacía\r\n");
-            break;
-        case 'B':
-            uart_send_string("Esperando valor de brillo...\r\n");
-            break;
+    switch (received_char)
+    {
+    case 'h':
+    case 'H':
+        tim3_ch1_pwm_set_duty_cycle(100);
+        uart_send_string("PWM = 100%\r\n");
+        break;
 
-        default:
-            if (received_char >= '0' && received_char <= '9'){
-                // Escalar el número 0-9 a 0-90% duty
-                uint8_t new_duty = (received_char - '0')*10;
-                tim3_ch1_pwm_set_duty_cycle(new_duty);
-                current_duty = new_duty;
-                uart_send_string("Nuevo duty PWM: ");
-                uart_send(received_char);
-                uart_send_string("0%\r\n");
-            }else{
-                // Echo de cualquier otro cáracter
-                uart_send(received_char);
-            }
+    case 'l':
+    case 'L':
+        tim3_ch1_pwm_set_duty_cycle(0);
+        uart_send_string("PWM = 0%\r\n");
+        break;
+
+    case '1': // 10%
+        tim3_ch1_pwm_set_duty_cycle(10);
+        uart_send_string("PWM = 10%\r\n");
+        break;
+
+    case '2': // 25%
+        tim3_ch1_pwm_set_duty_cycle(25);
+        uart_send_string("PWM = 25%\r\n");
+        break;
+
+    case '5': // 50%
+        tim3_ch1_pwm_set_duty_cycle(50);
+        uart_send_string("PWM = 50%\r\n");
+        break;
+    case '7': 
+        tim3_ch1_pwm_set_duty_cycle(75);
+        uart_send_string("PWM = 75%\r\n");
+        break;
+    case '9': // 90%
+        tim3_ch1_pwm_set_duty_cycle(90);
+        uart_send_string("PWM = 90%\r\n");
+        break;
+
+    case 'O':
+    case 'o':
+        current_state = ROOM_OCCUPIED;
+        set_gpio(GPIOA, 5);
+        tim3_ch1_pwm_set_duty_cycle(100);
+        uart_send_string("Sala ocupada\r\n");
+        last_action_time = ms_counter;
+        break;
+
+    case 'I':
+    case 'i':
+        current_state = ROOM_IDLE;
+        clear_gpio(GPIOA, 5);
+        tim3_ch1_pwm_set_duty_cycle(0);
+        uart_send_string("Sala vacía\r\n");
+        break;
+    case 'a': 
+        tim3_ch1_pwm_set_frequency(1000);
+        uart_send_string("PWM con frecuencia = 1 kHz\r\n");
+        break;
+
+    case 'e': 
+        tim3_ch1_pwm_set_frequency(10000);
+        uart_send_string("PWM con frecuencia = 10 kHz\r\n");
+        break;
+
+    case 'b': 
+        tim3_ch1_pwm_set_frequency(100000);
+        uart_send_string("PWM con frecuencia = 100 kHz\r\n");
+        break;
+    case 'u':
+        tim3_ch1_pwm_set_frequency(10);
+        uart_send_string("PWM con frecuencia = 10Hz\r\n");
+        break;
+
+    case 'w': 
+    case 'W':
+            tim3_ch1_pwm_set_duty_cycle(100);
+            current_state = ROOM_OCCUPIED;
+            uart_send_string("Hello World\r\n");
             break;
+    default:
+        uart_send(received_char); // Echo
+        break;
     }
 }
 
-// ----------------------------------------------------
-// Actualización periódica (llamar en el bucle principal)
-// ----------------------------------------------------
+// --- Actualización periódica -------------------------------------------------
 void room_control_update(void)
 {
-     uint32_t now = systick_get_ms();
+    // Si está ocupado y han pasado 3 s sin acción, volver a IDLE
+    if (current_state == ROOM_OCCUPIED &&
+        (ms_counter - last_action_time >= LED_TIMEOUT_MS))
+    {
 
-    // --- Timeout LED ---
-    if(current_state == ROOM_OCCUPIED && (now-led_on_time)>= LED_TIMEOUT_MS){
         current_state = ROOM_IDLE;
-        clear_gpio(GPIOA,5);
+        clear_gpio(GPIOA, 5);
         tim3_ch1_pwm_set_duty_cycle(0);
-        uart_send_string("Timeout: LED apagado (sala vacía)\r\n");
-    }
-
-    // --- Hearbeat ---
-    if ((now - last_heartbeat_time) >= HEARTBEAT_MS){
-        static uint8_t hb_state = 0;
-        if(hb_state){
-            clear_gpio(GPIOA,5);
-        }else  {
-            set_gpio(GPIOA,5);
-        }       
-        hb_state = !hb_state;
-        last_heartbeat_time = now;
+        uart_send_string("Timeout -> Estado: IDLE\r\n");
     }
 }

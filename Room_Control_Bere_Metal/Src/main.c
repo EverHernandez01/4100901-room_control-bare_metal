@@ -20,17 +20,16 @@ static void peripherals_init(void)
     rcc_init();
 
     // Configuración de GPIOs
-    init_gpio(GPIOA,5,0x01,0x00,0x01,0x00,0x00); // LED externo
-    init_gpio(GPIOB,3,0x01,0x00,0x00,0x00,0x00); // LD2 (Hearbeat)
-    init_gpio(GPIOC, 13, 0x00,0x00,0x01, 0x01,0x00); // Button
-
+    init_gpio(GPIOA, 5, 0x01, 0x00, 0x01, 0x00, 0x00);   // salida push-pull
+    init_gpio(GPIOC, 13, 0x00, 0x00, 0x01, 0x01, 0x00);  // entrada con pull-up
 
     // Inicialización de periféricos
     init_systick();
+    init_gpio_uart();
     init_uart();  // Asumiendo función unificada
     nvic_exti_pc13_button_enable();
     nvic_usart2_irq_enable();
-    tim3_ch1_pwm_init(1000);  // 1 kHz PWM
+    tim3_ch1_pwm_set_frequency(PWM_FREQUENCY); 
 }
 
 int main(void)
@@ -38,7 +37,7 @@ int main(void)
     peripherals_init();
     room_control_app_init();
     uart_send_string("Sistema de Control de Sala Inicializado!\r\n");
-
+    
     // Bucle principal: procesa eventos
     while (1) {
         if (button_event) {
@@ -54,11 +53,18 @@ int main(void)
         room_control_update();
     }
 }
-
+volatile uint32_t ms_counter = 0;
 // Manejador de SysTick
 void SysTick_Handler(void)
 {
-    system_ms_counter++;
+    ms_counter++;
+    static uint32_t hb = 0;
+    if (++hb >= 500) { // Toggle cada 500 ms
+       
+        GPIOA->ODR^=(1U << 5); // Toggle LED integrado
+        hb = 0;
+    }
+
 }
 
 // Manejadores de interrupciones
